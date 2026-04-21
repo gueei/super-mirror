@@ -25,7 +25,7 @@
   }
   .buttons {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns:1fr 1fr;
     gap: 8px;
     margin-top: 12px;
   }
@@ -39,9 +39,17 @@
     font: inherit;
     font-weight: 700;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
   .primary { background: #0d99ff; color: white; }
   .secondary { background: rgba(128,128,128,.16); }
+  .icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
   .status {
     min-height: 52px;
     margin-top: 12px;
@@ -56,29 +64,45 @@
   <div style="margin: 12px 0;">
     <label class="row" style="margin: 4px 0;">
       <input name="mode" type="radio" value="arbitrary" checked>
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>
       <span>Arbitrary axis</span>
     </label>
     <label class="row" style="margin: 4px 0;">
       <input name="mode" type="radio" value="horizontal">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m4 21 4-4-4-4"/><path d="M4 17h16"/></svg>
       <span>Horizontal (left/right)</span>
     </label>
     <label class="row" style="margin: 4px 0;">
       <input name="mode" type="radio" value="vertical">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/></svg>
       <span>Vertical (up/down)</span>
     </label>
   </div>
   <label class="row">
     <input id="clone" type="checkbox">
+    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
     <span>Clone before mirror</span>
   </label>
   <div id="axis-hint" class="hint">Extract uses real vector segments when available. Otherwise it extracts the transformed bounding-box edges.</div>
   <div class="buttons">
-    <button id="mirror" class="primary" type="button">Apply Mirror</button>
-    <button id="extract" class="secondary" type="button">Extract Axis Lines</button>
+    <button id="mirror" class="primary" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>
+      Apply Mirror
+    </button>
+    <button id="extract" class="secondary" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>
+      Extract Axis Lines
+    </button>
   </div>
   <div id="axis-buttons" class="buttons">
-    <button id="remove-axis" class="secondary" type="button">Remove Extracted Axis Lines</button>
-    <button id="cancel" class="secondary" type="button">Cancel</button>
+    <button id="remove-axis" class="secondary" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+      Remove Axis Lines
+    </button>
+    <button id="cancel" class="secondary" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      Cancel
+    </button>
   </div>
   <div id="status" class="status">UI loaded.</div>
   <script>

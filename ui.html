@@ -32,6 +32,9 @@
   .buttons + .buttons {
     margin-top: 8px;
   }
+  .buttons.single {
+    grid-template-columns: 1fr;
+  }
   button {
     border: 0;
     border-radius: 6px;
@@ -41,6 +44,7 @@
     cursor: pointer;
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
   }
   .primary { background: #0d99ff; color: white; }
@@ -49,6 +53,30 @@
     width: 16px;
     height: 16px;
     flex-shrink: 0;
+  }
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 12px;
+  }
+  .tab {
+    flex: 1;
+    padding: 8px;
+    border: 0;
+    background: rgba(128,128,128,.16);
+    border-radius: 6px 6px 0 0;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .tab.active {
+    background: #0d99ff;
+    color: white;
+  }
+  .tab-content {
+    display: none;
+  }
+  .tab-content.active {
+    display: block;
   }
   .status {
     min-height: 52px;
@@ -60,89 +88,118 @@
 </head>
 <body>
   <h1>Super Mirror</h1>
-  <p>Select target layers. For arbitrary mode, also select an axis helper. For standard modes, mirror across selection center.</p>
-  <div style="margin: 12px 0;">
-    <label class="row" style="margin: 4px 0;">
-      <input name="mode" type="radio" value="arbitrary" checked>
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>
-      <span>Arbitrary axis</span>
-    </label>
-    <label class="row" style="margin: 4px 0;">
-      <input name="mode" type="radio" value="horizontal">
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m4 21 4-4-4-4"/><path d="M4 17h16"/></svg>
-      <span>Horizontal (left/right)</span>
-    </label>
-    <label class="row" style="margin: 4px 0;">
-      <input name="mode" type="radio" value="vertical">
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/></svg>
-      <span>Vertical (up/down)</span>
-    </label>
+  
+  <div class="tabs">
+    <button class="tab active" data-tab="quick">Quick</button>
+    <button class="tab" data-tab="axis">Axis Mirror</button>
   </div>
-  <label class="row">
-    <input id="clone" type="checkbox">
-    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-    <span>Clone before mirror</span>
-  </label>
-  <div id="axis-hint" class="hint">Extract uses real vector segments when available. Otherwise it extracts the transformed bounding-box edges.</div>
-  <div class="buttons">
-    <button id="mirror" class="primary" type="button">
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>
-      Apply Mirror
-    </button>
-    <button id="extract" class="secondary" type="button">
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>
-      Extract Axis Lines
-    </button>
+
+  <!-- Quick Tab: One-click horizontal/vertical mirror -->
+  <div id="quick-tab" class="tab-content active">
+    <p>Select layers to mirror. Click to apply instantly.</p>
+    <label class="row">
+      <input id="quick-clone" type="checkbox">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+      <span>Clone before mirror</span>
+    </label>
+    <div class="buttons single">
+      <button id="quick-horizontal" class="primary" type="button">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m4 21 4-4-4-4"/><path d="M4 17h16"/></svg>
+        Horizontal Mirror
+      </button>
+      <button id="quick-vertical" class="primary" type="button">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/></svg>
+        Vertical Mirror
+      </button>
+    </div>
   </div>
-  <div id="axis-buttons" class="buttons">
-    <button id="remove-axis" class="secondary" type="button">
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-      Remove Axis Lines
-    </button>
-    <button id="cancel" class="secondary" type="button">
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-      Cancel
-    </button>
+
+  <!-- Axis Tab: Arbitrary axis mirror with helpers -->
+  <div id="axis-tab" class="tab-content">
+    <p>Select target layers plus one axis helper. Use Extract to create axis helpers from shapes.</p>
+    <label class="row">
+      <input id="axis-clone" type="checkbox">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+      <span>Clone before mirror</span>
+    </label>
+    <div class="buttons">
+      <button id="axis-mirror" class="primary" type="button">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>
+        Apply Mirror
+      </button>
+      <button id="extract" class="secondary" type="button">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>
+        Extract Axis Lines
+      </button>
+    </div>
+    <div class="buttons">
+      <button id="remove-axis" class="secondary" type="button">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+        Remove Axis Lines
+      </button>
+      <button id="cancel" class="secondary" type="button">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        Cancel
+      </button>
+    </div>
   </div>
+
   <div id="status" class="status">UI loaded.</div>
   <script>
     (function () {
-      var mirrorButton = document.getElementById('mirror');
-      var extractButton = document.getElementById('extract');
-      var removeAxisButton = document.getElementById('remove-axis');
-      var cancelButton = document.getElementById('cancel');
-      var cloneCheckbox = document.getElementById('clone');
-      var statusNode = document.getElementById('status');
-      var axisHintNode = document.getElementById('axis-hint');
-      var axisButtonsNode = document.getElementById('axis-buttons');
-      var modeRadios = document.querySelectorAll('input[name="mode"]');
-
-      var currentMode = 'arbitrary';
-
-      function updateUIForMode(mode) {
-        currentMode = mode;
-        if (mode === 'arbitrary') {
-          extractButton.style.display = 'inline-block';
-          axisHintNode.style.display = 'block';
-          axisButtonsNode.style.display = 'grid';
-        } else {
-          extractButton.style.display = 'none';
-          axisHintNode.style.display = 'none';
-          axisButtonsNode.style.display = 'none';
-        }
+      // Tab switching
+      var tabs = document.querySelectorAll('.tab');
+      var tabContents = document.querySelectorAll('.tab-content');
+      
+      function switchTab(tabName) {
+        tabs.forEach(function(tab) {
+          tab.classList.remove('active');
+        });
+        tabContents.forEach(function(content) {
+          content.classList.remove('active');
+        });
+        
+        var activeTab = document.querySelector('.tab[data-tab="' + tabName + '"]');
+        var activeContent = document.getElementById(tabName + '-tab');
+        if (activeTab) activeTab.classList.add('active');
+        if (activeContent) activeContent.classList.add('active');
+        
+        // Notify plugin about tab change to update status
+        parent.postMessage({ pluginMessage: { type: 'switch-tab', tab: tabName } }, '*');
       }
-
-      modeRadios.forEach(function(radio) {
-        radio.addEventListener('change', function() {
-          if (this.checked) {
-            updateUIForMode(this.value);
-            parent.postMessage({ pluginMessage: { type: 'set-mode', mode: this.value } }, '*');
-          }
+      
+      tabs.forEach(function(tab) {
+        tab.addEventListener('click', function() {
+          switchTab(this.getAttribute('data-tab'));
         });
       });
 
-      mirrorButton.addEventListener('click', function () {
-        parent.postMessage({ pluginMessage: { type: 'apply', clone: !!cloneCheckbox.checked } }, '*');
+      // Quick tab elements
+      var quickCloneCheckbox = document.getElementById('quick-clone');
+      var quickHorizontalButton = document.getElementById('quick-horizontal');
+      var quickVerticalButton = document.getElementById('quick-vertical');
+
+      // Axis tab elements
+      var axisCloneCheckbox = document.getElementById('axis-clone');
+      var axisMirrorButton = document.getElementById('axis-mirror');
+      var extractButton = document.getElementById('extract');
+      var removeAxisButton = document.getElementById('remove-axis');
+      var cancelButton = document.getElementById('cancel');
+
+      var statusNode = document.getElementById('status');
+
+      // Quick tab actions (one-click)
+      quickHorizontalButton.addEventListener('click', function () {
+        parent.postMessage({ pluginMessage: { type: 'quick-mirror', mode: 'horizontal', clone: !!quickCloneCheckbox.checked } }, '*');
+      });
+
+      quickVerticalButton.addEventListener('click', function () {
+        parent.postMessage({ pluginMessage: { type: 'quick-mirror', mode: 'vertical', clone: !!quickCloneCheckbox.checked } }, '*');
+      });
+
+      // Axis tab actions
+      axisMirrorButton.addEventListener('click', function () {
+        parent.postMessage({ pluginMessage: { type: 'axis-mirror', clone: !!axisCloneCheckbox.checked } }, '*');
       });
 
       extractButton.addEventListener('click', function () {
@@ -157,6 +214,7 @@
         parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
       });
 
+      // Handle messages from plugin
       window.onmessage = function (event) {
         var msg = event.data && event.data.pluginMessage;
         if (!msg) return;
@@ -164,7 +222,7 @@
           statusNode.textContent = msg.message;
         }
         if (typeof msg.canApply === 'boolean') {
-          mirrorButton.disabled = !msg.canApply;
+          axisMirrorButton.disabled = !msg.canApply;
         }
         if (typeof msg.canExtract === 'boolean') {
           extractButton.disabled = !msg.canExtract;
@@ -174,7 +232,8 @@
         }
       };
 
-      updateUIForMode('arbitrary');
+      // Initialize with quick tab active
+      switchTab('quick');
     })();
   </script>
 </body>

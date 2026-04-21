@@ -2,7 +2,6 @@
 
 var AXIS_PLUGIN_NAMESPACE = "mirror-across-axis";
 var AXIS_PLUGIN_KEY = "isExtractedAxis";
-var currentMode = "arbitrary";
 
 function multiply(m1, m2) {
   const [[a1, b1, tx1], [c1, d1, ty1]] = m1;
@@ -437,10 +436,11 @@ function runApply(options) {
   postStatus(verb + outputs.length + " layer(s) across " + axisDesc + ".", mode);
 }
 
-figma.showUI(__html__, { width: 360, height: 280, themeColors: true });
-postStatus(null, currentMode);
+figma.showUI(__html__, { width: 360, height: 340, themeColors: true });
+var currentTab = "quick";
+postStatus(null, "quick");
 figma.on("selectionchange", function() {
-  postStatus(null, currentMode);
+  postStatus(null, currentTab);
 });
 
 figma.ui.onmessage = function(msg) {
@@ -450,15 +450,17 @@ figma.ui.onmessage = function(msg) {
     return;
   }
   try {
-    if (msg.type === "apply") {
-      runApply({ clone: !!msg.clone, mode: currentMode });
+    if (msg.type === "switch-tab") {
+      currentTab = msg.tab;
+      postStatus(null, currentTab);
       return;
     }
-    if (msg.type === "set-mode") {
-      if (msg.mode === "arbitrary" || msg.mode === "horizontal" || msg.mode === "vertical") {
-        currentMode = msg.mode;
-        postStatus(null, currentMode);
-      }
+    if (msg.type === "quick-mirror") {
+      runApply({ clone: !!msg.clone, mode: msg.mode });
+      return;
+    }
+    if (msg.type === "axis-mirror") {
+      runApply({ clone: !!msg.clone, mode: "arbitrary" });
       return;
     }
     if (msg.type === "extract-axis-lines") {
@@ -472,6 +474,6 @@ figma.ui.onmessage = function(msg) {
   } catch (e) {
     var text = e && e.message ? e.message : "Action failed.";
     figma.notify(text, { error: true });
-    postStatus(text, currentMode);
+    postStatus(text, currentTab);
   }
 };

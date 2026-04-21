@@ -427,7 +427,6 @@ function runApply(options) {
 
   if (outputs.length > 0) {
     figma.currentPage.selection = outputs;
-    figma.viewport.scrollAndZoomIntoView(outputs);
   }
 
   var verb = options && options.clone ? "Cloned and " + mode + " mirrored " : mode + " mirrored ";

@@ -451,7 +451,8 @@ figma.ui.onmessage = function(msg) {
   try {
     if (msg.type === "switch-tab") {
       currentTab = msg.tab;
-      postStatus(null, currentTab);
+      var modeForStatus = msg.tab === "axis" ? "arbitrary" : null;
+      postStatus(null, modeForStatus);
       return;
     }
     if (msg.type === "quick-mirror") {
@@ -473,6 +474,6 @@ figma.ui.onmessage = function(msg) {
   } catch (e) {
     var text = e && e.message ? e.message : "Action failed.";
     figma.notify(text, { error: true });
-    postStatus(text, currentTab);
+    postStatus(text, currentTab === "axis" ? "arbitrary" : null);
   }
 };

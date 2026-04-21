@@ -137,10 +137,6 @@
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
         Remove Axis Lines
       </button>
-      <button id="cancel" class="secondary" type="button">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-        Cancel
-      </button>
     </div>
   </div>
 
@@ -184,7 +180,6 @@
       var axisMirrorButton = document.getElementById('axis-mirror');
       var extractButton = document.getElementById('extract');
       var removeAxisButton = document.getElementById('remove-axis');
-      var cancelButton = document.getElementById('cancel');
 
       var statusNode = document.getElementById('status');
 
@@ -208,10 +203,6 @@
 
       removeAxisButton.addEventListener('click', function () {
         parent.postMessage({ pluginMessage: { type: 'remove-axis-lines' } }, '*');
-      });
-
-      cancelButton.addEventListener('click', function () {
-        parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
       });
 
       // Handle messages from plugin

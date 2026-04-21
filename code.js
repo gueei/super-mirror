@@ -439,7 +439,8 @@ figma.showUI(__html__, { width: 360, height: 340, themeColors: true });
 var currentTab = "quick";
 postStatus(null, "quick");
 figma.on("selectionchange", function() {
-  postStatus(null, currentTab);
+  var modeForStatus = currentTab === "axis" ? "arbitrary" : null;
+  postStatus(null, modeForStatus);
 });
 
 figma.ui.onmessage = function(msg) {

@@ -360,7 +360,6 @@ function runExtractAxisLines() {
   }
 
   figma.currentPage.selection = created;
-  figma.viewport.scrollAndZoomIntoView(created);
   figma.notify("Extracted " + created.length + " axis line(s).");
   postStatus("Extracted " + created.length + " axis line(s) from " + describeNode(source) + ".");
 }
@@ -437,7 +436,7 @@ function runApply(options) {
 
 figma.showUI(__html__, { width: 360, height: 340, themeColors: true });
 var currentTab = "quick";
-postStatus(null, "quick");
+postStatus(null, null);
 figma.on("selectionchange", function() {
   var modeForStatus = currentTab === "axis" ? "arbitrary" : null;
   postStatus(null, modeForStatus);

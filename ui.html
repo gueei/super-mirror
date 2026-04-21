@@ -183,6 +183,11 @@
 
       var statusNode = document.getElementById('status');
 
+      // Initialize button states (will be updated by plugin messages)
+      axisMirrorButton.disabled = true;
+      extractButton.disabled = true;
+      removeAxisButton.disabled = true;
+
       // Quick tab actions (one-click)
       quickHorizontalButton.addEventListener('click', function () {
         parent.postMessage({ pluginMessage: { type: 'quick-mirror', mode: 'horizontal', clone: !!quickCloneCheckbox.checked } }, '*');

@@ -1,0 +1,114 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  :root { color-scheme: light dark; }
+  body {
+    margin: 0;
+    padding: 16px;
+    font: 12px/1.45 Inter, system-ui, sans-serif;
+  }
+  h1 { margin: 0 0 10px; font-size: 14px; }
+  p { margin: 0 0 12px; color: #666; }
+  label.row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 12px 0;
+    font-weight: 600;
+  }
+  .hint {
+    margin: 0 0 12px;
+    color: #666;
+    font-size: 11px;
+  }
+  .buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .buttons + .buttons {
+    margin-top: 8px;
+  }
+  button {
+    border: 0;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .primary { background: #0d99ff; color: white; }
+  .secondary { background: rgba(128,128,128,.16); }
+  .status {
+    min-height: 52px;
+    margin-top: 12px;
+    color: #666;
+    white-space: pre-wrap;
+  }
+</style>
+</head>
+<body>
+  <h1>Super Mirror</h1>
+  <p>Select target layers plus one axis helper, or select one shape to extract helper lines from it.</p>
+  <label class="row">
+    <input id="clone" type="checkbox">
+    <span>Clone before mirror</span>
+  </label>
+  <div class="hint">Extract uses real vector segments when available. Otherwise it extracts the transformed bounding-box edges.</div>
+  <div class="buttons">
+    <button id="mirror" class="primary" type="button">Apply Mirror</button>
+    <button id="extract" class="secondary" type="button">Extract Axis Lines</button>
+  </div>
+  <div class="buttons">
+    <button id="remove-axis" class="secondary" type="button">Remove Extracted Axis Lines</button>
+    <button id="cancel" class="secondary" type="button">Cancel</button>
+  </div>
+  <div id="status" class="status">UI loaded.</div>
+  <script>
+    (function () {
+      var mirrorButton = document.getElementById('mirror');
+      var extractButton = document.getElementById('extract');
+      var removeAxisButton = document.getElementById('remove-axis');
+      var cancelButton = document.getElementById('cancel');
+      var cloneCheckbox = document.getElementById('clone');
+      var statusNode = document.getElementById('status');
+
+      mirrorButton.addEventListener('click', function () {
+        parent.postMessage({ pluginMessage: { type: 'apply', clone: !!cloneCheckbox.checked } }, '*');
+      });
+
+      extractButton.addEventListener('click', function () {
+        parent.postMessage({ pluginMessage: { type: 'extract-axis-lines' } }, '*');
+      });
+
+      removeAxisButton.addEventListener('click', function () {
+        parent.postMessage({ pluginMessage: { type: 'remove-axis-lines' } }, '*');
+      });
+
+      cancelButton.addEventListener('click', function () {
+        parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
+      });
+
+      window.onmessage = function (event) {
+        var msg = event.data && event.data.pluginMessage;
+        if (!msg) return;
+        if (typeof msg.message === 'string') {
+          statusNode.textContent = msg.message;
+        }
+        if (typeof msg.canApply === 'boolean') {
+          mirrorButton.disabled = !msg.canApply;
+        }
+        if (typeof msg.canExtract === 'boolean') {
+          extractButton.disabled = !msg.canExtract;
+        }
+        if (typeof msg.canRemoveAxis === 'boolean') {
+          removeAxisButton.disabled = !msg.canRemoveAxis;
+        }
+      };
+    })();
+  </script>
+</body>
+</html>

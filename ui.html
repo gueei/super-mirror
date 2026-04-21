@@ -52,17 +52,31 @@
 </head>
 <body>
   <h1>Super Mirror</h1>
-  <p>Select target layers plus one axis helper, or select one shape to extract helper lines from it.</p>
+  <p>Select target layers. For arbitrary mode, also select an axis helper. For standard modes, mirror across selection center.</p>
+  <div style="margin: 12px 0;">
+    <label class="row" style="margin: 4px 0;">
+      <input name="mode" type="radio" value="arbitrary" checked>
+      <span>Arbitrary axis</span>
+    </label>
+    <label class="row" style="margin: 4px 0;">
+      <input name="mode" type="radio" value="horizontal">
+      <span>Horizontal (left/right)</span>
+    </label>
+    <label class="row" style="margin: 4px 0;">
+      <input name="mode" type="radio" value="vertical">
+      <span>Vertical (up/down)</span>
+    </label>
+  </div>
   <label class="row">
     <input id="clone" type="checkbox">
     <span>Clone before mirror</span>
   </label>
-  <div class="hint">Extract uses real vector segments when available. Otherwise it extracts the transformed bounding-box edges.</div>
+  <div id="axis-hint" class="hint">Extract uses real vector segments when available. Otherwise it extracts the transformed bounding-box edges.</div>
   <div class="buttons">
     <button id="mirror" class="primary" type="button">Apply Mirror</button>
     <button id="extract" class="secondary" type="button">Extract Axis Lines</button>
   </div>
-  <div class="buttons">
+  <div id="axis-buttons" class="buttons">
     <button id="remove-axis" class="secondary" type="button">Remove Extracted Axis Lines</button>
     <button id="cancel" class="secondary" type="button">Cancel</button>
   </div>
@@ -75,6 +89,33 @@
       var cancelButton = document.getElementById('cancel');
       var cloneCheckbox = document.getElementById('clone');
       var statusNode = document.getElementById('status');
+      var axisHintNode = document.getElementById('axis-hint');
+      var axisButtonsNode = document.getElementById('axis-buttons');
+      var modeRadios = document.querySelectorAll('input[name="mode"]');
+
+      var currentMode = 'arbitrary';
+
+      function updateUIForMode(mode) {
+        currentMode = mode;
+        if (mode === 'arbitrary') {
+          extractButton.style.display = 'inline-block';
+          axisHintNode.style.display = 'block';
+          axisButtonsNode.style.display = 'grid';
+        } else {
+          extractButton.style.display = 'none';
+          axisHintNode.style.display = 'none';
+          axisButtonsNode.style.display = 'none';
+        }
+      }
+
+      modeRadios.forEach(function(radio) {
+        radio.addEventListener('change', function() {
+          if (this.checked) {
+            updateUIForMode(this.value);
+            parent.postMessage({ pluginMessage: { type: 'set-mode', mode: this.value } }, '*');
+          }
+        });
+      });
 
       mirrorButton.addEventListener('click', function () {
         parent.postMessage({ pluginMessage: { type: 'apply', clone: !!cloneCheckbox.checked } }, '*');
@@ -108,6 +149,8 @@
           removeAxisButton.disabled = !msg.canRemoveAxis;
         }
       };
+
+      updateUIForMode('arbitrary');
     })();
   </script>
 </body>

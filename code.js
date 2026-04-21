@@ -2,6 +2,7 @@
 
 var AXIS_PLUGIN_NAMESPACE = "mirror-across-axis";
 var AXIS_PLUGIN_KEY = "isExtractedAxis";
+var currentMode = "arbitrary";
 
 function multiply(m1, m2) {
   const [[a1, b1, tx1], [c1, d1, ty1]] = m1;
@@ -47,6 +48,38 @@ function reflectionMatrixFromLine(a, b) {
 
 function isMirrorable(node) {
   return !!node && "relativeTransform" in node && "absoluteTransform" in node;
+}
+
+function getBoundsOfNodes(nodes) {
+  if (!nodes || nodes.length === 0) {
+    return { minX: 0, minY: 0, maxX: 0, maxY: 0, width: 0, height: 0 };
+  }
+
+  var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+  for (var i = 0; i < nodes.length; i++) {
+    var node = nodes[i];
+    var corners = localRectCorners(node).map(function(pt) {
+      return applyToPoint(node.absoluteTransform, pt);
+    });
+
+    for (var j = 0; j < corners.length; j++) {
+      var c = corners[j];
+      if (c.x < minX) minX = c.x;
+      if (c.y < minY) minY = c.y;
+      if (c.x > maxX) maxX = c.x;
+      if (c.y > maxY) maxY = c.y;
+    }
+  }
+
+  return {
+    minX: minX,
+    minY: minY,
+    maxX: maxX,
+    maxY: maxY,
+    width: maxX - minX,
+    height: maxY - minY
+  };
 }
 
 function parentAbsTransform(node) {
@@ -142,7 +175,59 @@ function cloneTarget(node) {
   return clone;
 }
 
-function analyzeSelection(sel) {
+function getAxisPointsForMode(mode, selection) {
+  if (mode === "horizontal") {
+    var targets = selection.filter(isMirrorable);
+    if (targets.length === 0) {
+      throw new Error("No mirrorable layers selected for horizontal mirror.");
+    }
+    var bounds = getBoundsOfNodes(targets);
+    var centerX = bounds.minX + bounds.width / 2;
+    return {
+      start: { x: centerX, y: bounds.minY },
+      end: { x: centerX, y: bounds.maxY },
+      mode: "horizontal"
+    };
+  }
+
+  if (mode === "vertical") {
+    var targets = selection.filter(isMirrorable);
+    if (targets.length === 0) {
+      throw new Error("No mirrorable layers selected for vertical mirror.");
+    }
+    var bounds = getBoundsOfNodes(targets);
+    var centerY = bounds.minY + bounds.height / 2;
+    return {
+      start: { x: bounds.minX, y: centerY },
+      end: { x: bounds.maxX, y: centerY },
+      mode: "vertical"
+    };
+  }
+
+  throw new Error("Unknown mirror mode: " + mode);
+}
+
+function analyzeSelection(sel, mode) {
+  if (!mode) mode = "arbitrary";
+
+  if (mode === "horizontal" || mode === "vertical") {
+    if (sel.length === 0) {
+      return { canApply: false, message: "Select at least one layer to mirror." };
+    }
+    var targets = sel.filter(isMirrorable);
+    if (targets.length === 0) {
+      return { canApply: false, message: "No mirrorable layers selected." };
+    }
+    return {
+      canApply: true,
+      canExtract: false,
+      axis: null,
+      targets: targets,
+      message: "Ready to " + mode + " mirror " + targets.length + " layer(s)."
+    };
+  }
+
+  // Arbitrary axis mode (original behavior)
   if (sel.length < 2) {
     return { canApply: false, message: "Select at least one target layer and one axis helper." };
   }
@@ -304,10 +389,11 @@ function runRemoveAxisLines() {
   postStatus("Removed " + lines.length + " extracted axis line(s).");
 }
 
-function postStatus(extra) {
+function postStatus(extra, mode) {
+  if (!mode) mode = "arbitrary";
   var sel = figma.currentPage.selection;
-  var state = analyzeSelection(sel);
-  var canExtract = sel.length === 1 && canExtractAxisLines(sel[0]);
+  var state = analyzeSelection(sel, mode);
+  var canExtract = mode === "arbitrary" && sel.length === 1 && canExtractAxisLines(sel[0]);
   var canRemoveAxis = canRemoveAxisLines();
   figma.ui.postMessage({
     canApply: state.canApply,
@@ -318,12 +404,20 @@ function postStatus(extra) {
 }
 
 function runApply(options) {
-  var state = analyzeSelection(figma.currentPage.selection);
+  var mode = options && options.mode ? options.mode : "arbitrary";
+  var sel = figma.currentPage.selection;
+  var state = analyzeSelection(sel, mode);
   if (!state.canApply) {
     throw new Error(state.message);
   }
 
-  var pts = getAxisPoints(state.axis);
+  var pts;
+  if (mode === "horizontal" || mode === "vertical") {
+    pts = getAxisPointsForMode(mode, sel);
+  } else {
+    pts = getAxisPoints(state.axis);
+  }
+
   var outputs = [];
   for (var i = 0; i < state.targets.length; i++) {
     var target = state.targets[i];
@@ -337,15 +431,16 @@ function runApply(options) {
     figma.viewport.scrollAndZoomIntoView(outputs);
   }
 
-  var verb = options && options.clone ? "Cloned and mirrored " : "Mirrored ";
+  var verb = options && options.clone ? "Cloned and " + mode + " mirrored " : mode + " mirrored ";
+  var axisDesc = mode === "horizontal" || mode === "vertical" ? mode + " axis" : describeNode(state.axis);
   figma.notify(verb + outputs.length + " layer(s).");
-  postStatus(verb + outputs.length + " layer(s) across " + describeNode(state.axis) + ".");
+  postStatus(verb + outputs.length + " layer(s) across " + axisDesc + ".", mode);
 }
 
 figma.showUI(__html__, { width: 360, height: 280, themeColors: true });
-postStatus();
+postStatus(null, currentMode);
 figma.on("selectionchange", function() {
-  postStatus();
+  postStatus(null, currentMode);
 });
 
 figma.ui.onmessage = function(msg) {
@@ -356,7 +451,14 @@ figma.ui.onmessage = function(msg) {
   }
   try {
     if (msg.type === "apply") {
-      runApply({ clone: !!msg.clone });
+      runApply({ clone: !!msg.clone, mode: currentMode });
+      return;
+    }
+    if (msg.type === "set-mode") {
+      if (msg.mode === "arbitrary" || msg.mode === "horizontal" || msg.mode === "vertical") {
+        currentMode = msg.mode;
+        postStatus(null, currentMode);
+      }
       return;
     }
     if (msg.type === "extract-axis-lines") {
@@ -370,6 +472,6 @@ figma.ui.onmessage = function(msg) {
   } catch (e) {
     var text = e && e.message ? e.message : "Action failed.";
     figma.notify(text, { error: true });
-    postStatus(text);
+    postStatus(text, currentMode);
   }
 };

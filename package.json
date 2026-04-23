@@ -6,7 +6,7 @@
   "scripts": {
     "build": "npm run build:code && npm run build:ui",
     "build:code": "esbuild src/code.ts --bundle --platform=browser --format=iife --target=es2020 --outfile=dist/code.js",
-    "build:ui": "esbuild src/ui.ts --bundle --platform=browser --format=iife --target=es2020 --outfile=dist/ui.js",
+    "build:ui": "node build-inline-ui.mjs",
     "watch": "esbuild src/code.ts --bundle --platform=browser --format=iife --target=es2020 --outfile=dist/code.js --watch",
     "test": "tsx --test tests/*.test.ts"
   },
